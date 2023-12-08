@@ -5,7 +5,7 @@ from datetime import datetime
 from waitress import serve
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv, find_dotenv
-
+from paste.translogger import TransLogger
 load_dotenv(find_dotenv())
 
 COLLECTION = os.getenv("WEBHOOKS_COLLECTION")
@@ -28,7 +28,6 @@ def get_birthday():
 @app.route("/api/subscribe", methods=["POST"])
 def add_subscriber():
   url = request.get_json()["url"]
-  # subscribers = db.get_collection(COLLECTION)
   exists = subscribers.find_one({"webhook": url})
   if exists:
     return jsonify("Webhook already subscribed"), 409
@@ -42,7 +41,6 @@ def add_subscriber():
   except Exception as e:
     return jsonify("Invalid URL"), 422
   
-  # subscribers = db.get_collection(COLLECTION)
   subscribers.insert_one({
     "webhook": url
   })
@@ -50,7 +48,6 @@ def add_subscriber():
 
 @app.route("/api/unsubscribe", methods=["POST"])
 def remove_subscriber():
-  # subscribers = db.get_collection(COLLECTION)
   url = request.get_json()["url"]
   response = subscribers.delete_one({"webhook": url}).deleted_count
   if not response:
@@ -64,9 +61,6 @@ def send_webhooks():
   birthday = fn.get_character_by_birthday(test_date.month, test_date.day, test_date.year)
   if not birthday: return jsonify("No birthdays today."), 200
 
-  db = mongo.get_database()
-  # subscribers = db.get_collection(COLLECTION)
-
   for sub in subscribers.find():
     url = sub["webhook"]
     data = {
@@ -77,4 +71,4 @@ def send_webhooks():
 
 if __name__ == "__main__":
   # app.run(debug=True)
-  serve(app, host="0.0.0.0", port=5000)
+  serve(TransLogger(app), host="0.0.0.0", port=5000)
