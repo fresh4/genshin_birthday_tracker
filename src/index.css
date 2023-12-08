@@ -67,6 +67,14 @@ button:focus-visible {
   color: white;
 }
 
+.anticon-close,
+.ant-drawer-body {
+  color: white !important;
+}
+.ant-drawer-content {
+  background: #242424 !important;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -78,11 +86,39 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-
+  .anticon-close,
+  .ant-drawer-body {
+    color: black !important;
+  }
   .ant-slider-mark-text,
   .ant-input-number-group-addon,
   .ant-collapse-header-text,
   .ant-collapse-content-box {
     color: #213547 !important;
   }
+  .ant-drawer-content {
+    background: white !important;
+  }
+}
+
+/* SCROLLBAR */
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: none;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 1rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

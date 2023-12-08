@@ -25,6 +25,11 @@ def get_birthday():
 
   return jsonify(res)
 
+@app.route("/api/birthday/all", methods=["GET"])
+def get_all_birthdays():
+  birthdays = fn.construct_birthday_list()
+  return jsonify(birthdays), 200
+
 @app.route("/api/subscribe", methods=["POST"])
 def add_subscriber():
   url = request.get_json()["url"]

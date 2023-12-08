@@ -32,21 +32,24 @@ def construct_birthday_list() -> list:
   birthdays = []
 
   html = rq.get("https://genshin-impact.fandom.com/wiki/Birthday")
-  html = html.content.decode().split("article-table")[1].split("</>")[0].replace("\n", "")
+  html = html.text.split("article-table")[1].split("</>")[0].replace("\n", "")
   html = html.split("<tbody>")[1].split("</tbody>")[0]
 
   table = html.split("<tr>")[3:]
 
   for i in table:
+    img = re.search(r"(https:.*?.png)", i).group(1)
     data = re.split(r"<td.*?>", i)[1:]
     name = re.sub(r"<.*?>", "", data[1])
     bdate = re.sub(r"<.*?>", "", data[2])
     bday = re.sub(r"\D*", "", bdate)
 
     birthdays.append({
+      "icon": img,
       "character": name,
       "month": bdate.split(" ")[0],
-      "day": bday
+      "day": bday,
+      "day_en": bdate.split(" ")[1]
     })
   return birthdays
 

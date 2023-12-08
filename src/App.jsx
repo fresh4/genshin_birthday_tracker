@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Collapse, Input, Button, Modal, Alert, message } from "antd";
+import { Collapse, Input, Button, Modal, Alert, Drawer, message } from "antd";
 import "./App.css";
 const { Search } = Input;
 
@@ -15,7 +15,9 @@ function App() {
   ];
 
   useEffect(() => {
-    fetch("/api/birthday")
+    let month = new Date().getMonth() + 1;
+    let day = new Date().getDate();
+    fetch(`/api/birthday?day=${day}&month=${month}`)
       .then((response) => response.json())
       .then((data) => {
         setBirthday(data);
@@ -25,10 +27,19 @@ function App() {
 
   return (
     <>
-      {birthday["character"] == undefined && <h1>No birthdays today...</h1>}
-      {birthday["character"] != undefined && (
-        <h1>Today is {birthday["character"]}'s birthday!</h1>
-      )}
+      <AllBirthdays />
+      <div>
+        {birthday["character"] == undefined && <h1>No birthdays today...</h1>}
+        {birthday["character"] != undefined && (
+          <h1>Today is {birthday["character"]}'s birthday!</h1>
+        )}
+      </div>
+      <p style={{ fontSize: "0.9rem", margin: 0 }}>
+        {new Date().toLocaleString("default", {
+          month: "long",
+          day: "numeric",
+        })}
+      </p>
       <Collapse ghost expandIcon={() => <></>} items={items} />
     </>
   );
@@ -92,7 +103,10 @@ function Subscribe() {
       <br />
       <p>
         You can use Discord to get a webhook url.{" "}
-        <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks">
+        <a
+          href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
+          target="_blank"
+        >
           What's a webhook?
         </a>
       </p>
@@ -161,6 +175,98 @@ function UnsubscribeModal({ isOpen, setModal }) {
         </p>
         {error && <Alert description={error} type="error" />}
       </Modal>
+    </>
+  );
+}
+
+function AllBirthdays() {
+  const [birthdays, setBirthdays] = useState([]);
+  const [filteredBirthdays, setFilteredBirthdays] = useState([]);
+  const [filters, setFilters] = useState("");
+  const [open, setOpen] = useState(false);
+  // "icon"
+  // "character"
+  // "month"
+  // "day"
+  // "day_en"
+
+  useEffect(() => {
+    fetch("/api/birthday/all")
+      .then((response) => response.json())
+      .then((response) => {
+        setBirthdays(response);
+        setFilteredBirthdays(response);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (filters)
+      setFilteredBirthdays(
+        filteredBirthdays.filter((char) =>
+          char["character"].toLowerCase().includes(filters.toLowerCase())
+        )
+      );
+    else setFilteredBirthdays(birthdays);
+  }, [filters]);
+
+  return (
+    <>
+      <Button
+        style={{
+          position: "fixed",
+          top: "1rem",
+          left: "1rem",
+        }}
+        onClick={() => setOpen(!open)}
+      >
+        Show All
+      </Button>
+      <Drawer open={open} onClose={() => setOpen(false)} placement="left">
+        <a
+          href="https://genshin-impact.fandom.com/wiki/Birthday"
+          target="_blank"
+        >
+          Birthday data collected from the wiki.
+        </a>
+        <Input
+          placeholder="Search..."
+          value={filters}
+          onChange={(e) => setFilters(e.target.value)}
+          style={{ marginBottom: "1rem", marginTop: "1rem" }}
+        />
+        <br />
+        {birthdays &&
+          filteredBirthdays.map((birthday, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+              }}
+            >
+              <img src={birthday["icon"]} width={100} />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "column",
+                  textAlign: "center",
+                }}
+              >
+                <h2 style={{ width: "min-content" }}>
+                  {birthday["character"]}
+                </h2>
+                <p>
+                  {birthday["month"]} {birthday["day_en"]}
+                </p>
+              </div>
+            </div>
+          ))}
+      </Drawer>
     </>
   );
 }
