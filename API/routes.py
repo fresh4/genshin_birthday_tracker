@@ -57,8 +57,7 @@ def remove_subscriber():
 @app.route("/api/publish", methods=["POST"])
 @fn.auth
 def send_webhooks():
-  test_date = datetime.strptime("03/01/2023", "%d/%m/%Y")
-  birthday = fn.get_character_by_birthday(test_date.month, test_date.day, test_date.year)
+  birthday = fn.get_character_by_birthday()
   if not birthday: return jsonify("No birthdays today."), 200
 
   for sub in subscribers.find():
