@@ -30,6 +30,13 @@ def get_all_birthdays():
   birthdays = fn.construct_birthday_list()
   return jsonify(birthdays), 200
 
+@app.route("/api/birthday/art", methods=["POST"])
+def get_birthday_art():
+  url = request.get_json()["url"]
+  width = request.get_json()["width"]
+  img = fn.get_available_birthday_image(url, width)
+  return img
+
 @app.route("/api/subscribe", methods=["POST"])
 def add_subscriber():
   url = request.get_json()["url"]

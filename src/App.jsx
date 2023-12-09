@@ -18,6 +18,7 @@ const localResetTime = new Date(
 
 function App() {
   const [birthday, setBirthday] = useState({});
+  const [img, setImg] = useState("");
 
   const items = [
     {
@@ -38,9 +39,28 @@ function App() {
       .catch((error) => console.error(error));
   }, []);
 
+  useEffect(() => {
+    if (birthday["birthday_page"]) {
+      fetch(`/api/birthday/art`, {
+        method: "POST",
+        body: JSON.stringify({
+          url: birthday["birthday_page"],
+          width: window.innerWidth,
+        }),
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          setImg(data);
+        })
+        .catch((error) => console.error(error));
+    }
+  }, [birthday]);
+
   return (
     <>
       <AllBirthdays />
+      {img && <img className="bg" src={"data:image/png;base64," + img} />}
       <div>
         {birthday["character"] == undefined && <h1>No birthdays today...</h1>}
         {birthday["character"] != undefined && (
@@ -126,7 +146,7 @@ function Subscribe() {
       </p>
       <footer>
         <a
-          style={{ color: "red", fontSize: "0.8rem" }}
+          style={{ color: "#d9363e", fontSize: "0.8rem" }}
           onClick={() => setIsModalOpen(!isModalOpen)}
         >
           Unsubscribe

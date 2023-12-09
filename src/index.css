@@ -15,11 +15,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #2ee959;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #209e3d;
 }
 
 body {
@@ -101,6 +101,61 @@ button:focus-visible {
   }
 }
 
+.bg {
+  z-index: -1;
+  max-width: 100%;
+  object-fit: cover;
+  object-position: 0 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: fadeIn ease 1.5s;
+  mask-image: linear-gradient(black 0%, transparent 95%);
+  -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 100%);
+}
+/* BACKGROUND */
+@media screen and (max-width: 600px) {
+  .bg {
+    z-index: -1;
+    animation: fadeIn ease 1.5s;
+    transition: 1s;
+    position: fixed;
+    opacity: 0.5;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    top: 0;
+    left: 0;
+    mask-image: linear-gradient(black 0%, transparent 95%);
+    -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 100%);
+  }
+}
+@keyframes fadeIn {
+  0% {
+    top: -10rem;
+    opacity: 0;
+  }
+
+  100% {
+    top: 0;
+    opacity: 0.5;
+  }
+}
+@keyframes slideIn {
+  0% {
+    /* height: 0; */
+    opacity: 0;
+  }
+  50% {
+    height: max-content;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 /* SCROLLBAR */
 /* width */
 ::-webkit-scrollbar {

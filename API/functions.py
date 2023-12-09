@@ -1,5 +1,5 @@
 import requests as rq
-import re, calendar, os
+import re, calendar, os, base64
 from datetime import date
 from flask import request, jsonify
 from dotenv import load_dotenv, find_dotenv
@@ -23,7 +23,6 @@ def get_character_by_birthday(input_month = date.today().month, input_day = date
   for i in birthdays:
     month = str(list(calendar.month_name).index(i["month"]))
     day = str(i["day"])
-
     if day == today["day"] and month == today["month"]:
       return i
   return {}
@@ -39,6 +38,8 @@ def construct_birthday_list() -> list:
 
   for i in table:
     img = re.search(r"(https:.*?.png)", i).group(1)
+    birthday_page = re.search(r"\"(\/wiki/Birthday\/.*?)\"", i).group(1)
+
     data = re.split(r"<td.*?>", i)[1:]
     name = re.sub(r"<.*?>", "", data[1])
     bdate = re.sub(r"<.*?>", "", data[2])
@@ -49,11 +50,21 @@ def construct_birthday_list() -> list:
       "character": name,
       "month": bdate.split(" ")[0],
       "day": bday,
-      "day_en": bdate.split(" ")[1]
+      "day_en": bdate.split(" ")[1],
+      "birthday_page": birthday_page
     })
   return birthdays
 
-# defining a decorator
+def get_available_birthday_image(url: str, width: int = 600):
+  img_w = 600 if width < 1500 else 1000
+  try:
+    x = rq.get("https://genshin-impact.fandom.com" + url, headers={"Cache-Control": "no-cache"}).text
+    link = re.search(r"=\"(https:\/\/.*?_Birthday_.*?\.(png|jpg))", x).group(1)
+    img = rq.get(link+f"/revision/latest/scale-to-width-down/{img_w}").content
+    return base64.b64encode(img).decode('utf-8')
+  except AttributeError:
+    return None
+
 def auth(func):
     def inner1(*args, **kwargs):
       try:
