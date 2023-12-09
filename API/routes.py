@@ -39,7 +39,7 @@ def add_subscriber():
 
   # Validate the submitted URL
   try:
-    test_post_data = {"content": "This webhook has been subscribed to the Genshin Birthday API. You can unsubscribe at any time."}
+    test_post_data = {"content": "This webhook has been subscribed to the Genshin Birthday API. You can unsubscribe at any time on [the website](https://genshin-birthdays.com/)."}
     test_post = requests.post(url, data=json.dumps(test_post_data), headers={"Content-Type": "application/json"})
     if test_post.status_code >= 400:
       raise Exception("Invalid URL")

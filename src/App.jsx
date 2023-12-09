@@ -3,6 +3,19 @@ import { Collapse, Input, Button, Modal, Alert, Drawer, message } from "antd";
 import "./App.css";
 const { Search } = Input;
 
+const localResetTime = new Date(
+  Date.UTC(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate(),
+    0,
+    0,
+    0
+  )
+)
+  .toLocaleTimeString()
+  .replaceAll(":00", "");
+
 function App() {
   const [birthday, setBirthday] = useState({});
 
@@ -90,7 +103,8 @@ function Subscribe() {
       {contextHolder}
       <p>
         You can use webhooks to get notifications whenever it is a character's
-        birthday. Notifications push at 12am UTC.
+        birthday. Notifications push at 12 AM UTC (or {localResetTime} local
+        time).
         <br />
       </p>
       <Search
