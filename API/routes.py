@@ -1,7 +1,7 @@
 import requests, json, os
 import functions as fn
 import mongo
-from datetime import datetime
+from datetime import datetime, date
 from waitress import serve
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv, find_dotenv
@@ -70,7 +70,7 @@ def remove_subscriber():
 @fn.auth
 def send_webhooks():
   birthday = fn.get_character_by_birthday()
-  if not birthday: return jsonify("No birthdays today."), 200
+  if not birthday: return jsonify(f"No birthdays today {datetime.now().strftime('%m/%d/%Y %H:%M %Z')}"), 200
 
   for sub in subscribers.find():
     url = sub["webhook"]
