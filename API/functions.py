@@ -1,12 +1,22 @@
+import json
 import requests as rq
 import re, calendar, os, base64
 from datetime import date
+import mongo
 from flask import request, jsonify
 from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
+COLLECTION = os.getenv("WEBHOOKS_COLLECTION")
 
-def get_character_by_birthday(input_month = date.today().month, input_day = date.today().day, input_year = date.today().year) -> dict:
+load_dotenv(find_dotenv())
+db = mongo.get_database()
+subscribers = db.get_collection(COLLECTION)
+
+def get_character_by_birthday(input_month = None, input_day = None, input_year = None) -> dict:
+  input_month = date.today().month if input_month == None else input_month
+  input_day = date.today().day if input_day == None else input_day
+  input_year = date.today().year if input_year == None else input_year
+
   birthdays = construct_birthday_list()
   today = {
     "month": str(input_month),
@@ -64,6 +74,17 @@ def get_available_birthday_image(url: str, width: int = 600):
     return base64.b64encode(img).decode('utf-8')
   except AttributeError:
     return None
+
+def send_webhooks():
+  birthday = get_character_by_birthday()
+  if not birthday: return 
+
+  for sub in subscribers.find():
+    url = sub["webhook"]
+    data = {
+      "content": f"It's {birthday['character']}'s birthday today! ({birthday['month']} {birthday['day']})"
+    }
+    rq.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
 
 def auth(func):
     def inner1(*args, **kwargs):
