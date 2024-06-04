@@ -48,7 +48,10 @@ def construct_birthday_list() -> list:
 
   for i in table:
     img = re.search(r"(https:.*?.png)", i).group(1)
-    birthday_page = re.search(r"\"(\/wiki/Birthday\/.*?)\"", i).group(1)
+    try:
+      birthday_page = re.search(r"\"(\/wiki\/Birthday\/.*?)\"", i).group(1)
+    except:
+      continue
 
     data = re.split(r"<td.*?>", i)[1:]
     name = re.sub(r"<.*?>", "", data[1])
