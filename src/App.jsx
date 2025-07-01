@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { Collapse, Input, Button, Modal, Alert, Drawer, message } from "antd";
 import "./App.css";
@@ -18,6 +19,7 @@ const localResetTime = new Date(
 
 function App() {
   const [birthday, setBirthday] = useState({});
+  const [nextBirthday, setNextBirthday] = useState({});
   const [img, setImg] = useState("");
 
   const items = [
@@ -59,7 +61,7 @@ function App() {
 
   return (
     <>
-      <AllBirthdays />
+      <AllBirthdays setNextBirthday={setNextBirthday} />
       {img && <img className="bg" src={"data:image/png;base64," + img} />}
       <div>
         {birthday["character"] == undefined && <h1>No birthdays today...</h1>}
@@ -73,6 +75,11 @@ function App() {
           day: "numeric",
         })}
       </p>
+      {birthday["character"] == undefined && nextBirthday && 
+        <p style={{ fontSize: "0.9rem", margin: 0, marginTop: "0.5rem" }}>
+          Next birthday is {nextBirthday.character}'s on {nextBirthday.month} {nextBirthday.day_en}
+        </p>
+      }
       <Collapse ghost expandIcon={() => <></>} items={items} />
     </>
   );
@@ -139,7 +146,7 @@ function Subscribe() {
         You can use Discord to get a webhook url.{" "}
         <a
           href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
-          target="_blank"
+          target="_blank" rel="noreferrer"
         >
           What's a webhook?
         </a>
@@ -213,7 +220,7 @@ function UnsubscribeModal({ isOpen, setModal }) {
   );
 }
 
-function AllBirthdays() {
+function AllBirthdays({setNextBirthday = () => {}}) {
   const [birthdays, setBirthdays] = useState([]);
   const [filteredBirthdays, setFilteredBirthdays] = useState([]);
   const [filters, setFilters] = useState("");
@@ -224,12 +231,38 @@ function AllBirthdays() {
   // "day"
   // "day_en"
 
+  function getNextBirthday(birthday_list) {
+    const now = new Date();
+
+    const birthday_dates = birthday_list.map(birthday => {
+      const thisYearBirthday = new Date(`${birthday.month} ${birthday.day}, ${now.getFullYear()}`);
+      const year = now > thisYearBirthday ? now.getFullYear() + 1 : now.getFullYear();
+      return {
+        ...birthday,
+        birthday_date: new Date(`${birthday.month} ${birthday.day}, ${year}`)
+      };
+    });
+
+    const closest = birthday_dates.reduce((closest, character) => {
+      const current = character.birthday_date;
+      if (current <= now) return closest;
+
+      const currentDiff = current - now;
+      const closestDiff = closest ? closest.birthday_date - now : Infinity;
+
+      return currentDiff < closestDiff ? character : closest;
+    }, null);
+    
+    return closest
+  }
+
   useEffect(() => {
     fetch("/api/birthday/all")
       .then((response) => response.json())
       .then((response) => {
         setBirthdays(response);
         setFilteredBirthdays(response);
+        setNextBirthday(getNextBirthday(response))
       })
       .catch((error) => {
         console.error(error);
@@ -261,7 +294,7 @@ function AllBirthdays() {
       <Drawer open={open} onClose={() => setOpen(false)} placement="left">
         <a
           href="https://genshin-impact.fandom.com/wiki/Birthday"
-          target="_blank"
+          target="_blank" rel="noreferrer"
         >
           Birthday data collected from the wiki.
         </a>
