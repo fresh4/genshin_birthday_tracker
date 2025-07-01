@@ -75,7 +75,7 @@ function App() {
           day: "numeric",
         })}
       </p>
-      {birthday["character"] == undefined && nextBirthday && 
+      {birthday["character"] == undefined && 'character' in nextBirthday && 
         <p style={{ fontSize: "0.9rem", margin: 0, marginTop: "0.5rem" }}>
           Next birthday is {nextBirthday.character}'s on {nextBirthday.month} {nextBirthday.day_en}
         </p>
