@@ -62,7 +62,7 @@ function App() {
   return (
     <>
       <AllBirthdays setNextBirthday={setNextBirthday} />
-      {img && <img className="bg" src={"data:image/png;base64," + img} />}
+      {img && <img alt="Character's Birthday Art" className="bg" src={"data:image/png;base64," + img} />}
       <div>
         {birthday["character"] == undefined && <h1>No birthdays today...</h1>}
         {birthday["character"] != undefined && (
