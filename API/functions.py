@@ -4,6 +4,7 @@ import re, calendar, os, base64
 from datetime import date
 import mongo
 from flask import request, jsonify
+from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
@@ -47,11 +48,15 @@ def get_all_birthdays_from_db() -> list:
 
 def construct_birthday_list() -> list:
   birthdays = []
-  rq = cloudscraper.create_scraper()
   
-  headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'}
-  html = rq.get("https://genshin-impact.fandom.com/wiki/Birthday", headers=headers)
-  html = html.text.split("article-table")[1].split("</>")[0].replace("\n", "")
+  with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+    page.goto("https://genshin-impact.fandom.com/wiki/Birthday", wait_until="domcontentloaded")
+    html = page.content()
+    browser.close()
+  
+  html = html.split("article-table")[1].split("</>")[0].replace("\n", "")
   html = html.split("<tbody>")[1].split("</tbody>")[0]
 
   table = html.split("<tr>")[3:]
