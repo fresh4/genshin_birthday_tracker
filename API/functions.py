@@ -1,5 +1,5 @@
 import json
-import requests as rq
+import cloudscraper
 import re, calendar, os, base64
 from datetime import date
 import mongo
@@ -11,6 +11,7 @@ COLLECTION = os.getenv("WEBHOOKS_COLLECTION")
 load_dotenv(find_dotenv())
 db = mongo.get_database()
 subscribers = db.get_collection(COLLECTION)
+rq = cloudscraper.create_scraper()
 
 def get_character_by_birthday(input_month = None, input_day = None, input_year = None) -> dict:
   input_month = date.today().month if input_month == None else input_month
@@ -39,15 +40,15 @@ def get_character_by_birthday(input_month = None, input_day = None, input_year =
 
 def construct_birthday_list() -> list:
   birthdays = []
-
-  html = rq.get("https://genshin-impact.fandom.com/wiki/Birthday")
+  headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'}
+  html = rq.get("https://genshin-impact.fandom.com/wiki/Birthday", headers=headers)
   html = html.text.split("article-table")[1].split("</>")[0].replace("\n", "")
   html = html.split("<tbody>")[1].split("</tbody>")[0]
 
   table = html.split("<tr>")[3:]
 
   for i in table:
-    img = re.search(r"(https:.*?.png)", i).group(1)
+    img = re.search(r"(https:.*?)\"", i).group(1).split(".png")[0] + ".png"
     try:
       birthday_page = re.search(r"\"(\/wiki\/Birthday\/.*?)\"", i).group(1)
     except:
