@@ -11,7 +11,6 @@ COLLECTION = os.getenv("WEBHOOKS_COLLECTION")
 load_dotenv(find_dotenv())
 db = mongo.get_database()
 subscribers = db.get_collection(COLLECTION)
-rq = cloudscraper.create_scraper()
 
 def get_character_by_birthday(input_month = None, input_day = None, input_year = None) -> dict:
   input_month = date.today().month if input_month == None else input_month
@@ -40,6 +39,8 @@ def get_character_by_birthday(input_month = None, input_day = None, input_year =
 
 def construct_birthday_list() -> list:
   birthdays = []
+  rq = cloudscraper.create_scraper()
+  
   headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'}
   html = rq.get("https://genshin-impact.fandom.com/wiki/Birthday", headers=headers)
   html = html.text.split("article-table")[1].split("</>")[0].replace("\n", "")
@@ -71,6 +72,7 @@ def construct_birthday_list() -> list:
 
 def get_available_birthday_image(url: str, width: int = 600):
   img_w = 600 if width < 1500 else 1000
+  rq = cloudscraper.create_scraper()
   try:
     x = rq.get("https://genshin-impact.fandom.com" + url, headers={"Cache-Control": "no-cache"}).text
     link = re.search(r"=\"(https:\/\/.*?_Birthday_.*?\.(png|jpg))", x).group(1)
@@ -80,6 +82,7 @@ def get_available_birthday_image(url: str, width: int = 600):
     return None
 
 def send_webhooks():
+  rq = cloudscraper.create_scraper()
   birthday = get_character_by_birthday()
   if not birthday: return 
 
