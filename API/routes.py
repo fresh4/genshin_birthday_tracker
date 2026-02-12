@@ -1,18 +1,13 @@
-import requests, json, os
+import requests, json
 import functions as fn
-import mongo
-from datetime import datetime, date
+from datetime import datetime
 from waitress import serve
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv, find_dotenv
 from paste.translogger import TransLogger
+
 load_dotenv(find_dotenv())
-
-COLLECTION = os.getenv("WEBHOOKS_COLLECTION")
-
 app = Flask(__name__)
-db = mongo.get_database()
-subscribers = db.get_collection(COLLECTION)
 
 @app.route("/api/birthday", methods=["GET"])
 def get_birthday():
@@ -27,7 +22,7 @@ def get_birthday():
 
 @app.route("/api/birthday/all", methods=["GET"])
 def get_all_birthdays():
-  birthdays = fn.construct_birthday_list()
+  birthdays = fn.get_all_birthdays_from_db()
   return jsonify(birthdays), 200
 
 @app.route("/api/birthday/art", methods=["POST"])
@@ -40,7 +35,7 @@ def get_birthday_art():
 @app.route("/api/subscribe", methods=["POST"])
 def add_subscriber():
   url = request.get_json()["url"]
-  exists = subscribers.find_one({"webhook": url})
+  exists = fn.subscribers.find_one({"webhook": url})
   if exists:
     return jsonify("Webhook already subscribed"), 409
 
@@ -53,7 +48,7 @@ def add_subscriber():
   except Exception as e:
     return jsonify("Invalid URL"), 422
   
-  subscribers.insert_one({
+  fn.subscribers.insert_one({
     "webhook": url
   })
   return jsonify("Subscribed"), 200
@@ -61,7 +56,7 @@ def add_subscriber():
 @app.route("/api/unsubscribe", methods=["POST"])
 def remove_subscriber():
   url = request.get_json()["url"]
-  response = subscribers.delete_one({"webhook": url}).deleted_count
+  response = fn.subscribers.delete_one({"webhook": url}).deleted_count
   if not response:
     return jsonify("Webhook already unsubscribed."), 404
   return jsonify(response), 200
@@ -72,7 +67,7 @@ def send_webhooks():
   birthday = fn.get_character_by_birthday()
   if not birthday: return jsonify(f"No birthdays today {datetime.now().strftime('%m/%d/%Y %H:%M %Z')}"), 200
 
-  for sub in subscribers.find():
+  for sub in fn.subscribers.find():
     url = sub["webhook"]
     data = {
       "content": f"It's {birthday['character']}'s birthday today! ({birthday['month']} {birthday['day']})"
