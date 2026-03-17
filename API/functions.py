@@ -48,15 +48,11 @@ def get_all_birthdays_from_db() -> list:
 
 def construct_birthday_list() -> list:
   birthdays = []
+  rq = cloudscraper.create_scraper()
   
-  with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
-    page.goto("https://genshin-impact.fandom.com/wiki/Birthday", wait_until="domcontentloaded")
-    html = page.content()
-    browser.close()
-  
-  html = html.split("article-table")[1].split("</>")[0].replace("\n", "")
+  headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'}
+  html = rq.get("https://genshin-impact.fandom.com/wiki/Birthday", headers=headers)
+  html = html.text.split("article-table")[1].split("</>")[0].replace("\n", "")
   html = html.split("<tbody>")[1].split("</tbody>")[0]
 
   table = html.split("<tr>")[3:]
@@ -110,11 +106,14 @@ def update_db():
   
   for character in characters:
     exists = characters_collection.find_one({"character": character["character"]})
-    if exists: continue
-    
-    print(f"Inserting {character['character']}")
     character['birthday-image'] = get_available_birthday_image_web(character['birthday_page'])
-    characters_collection.insert_one(character)
+    
+    if exists and exists['birthday-image'] == None and character['birthday-image'] != None: 
+      print(f"Updating {character['character']}")
+      characters_collection.update_one({'character': character['character']}, {'$set': {'birthday-image': character['birthday-image']}})
+    elif not exists:    
+      print(f"Inserting {character['character']}")
+      characters_collection.insert_one(character)
 
 def send_webhooks():
   birthday = get_character_by_birthday()
