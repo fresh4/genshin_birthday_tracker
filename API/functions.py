@@ -3,6 +3,7 @@ import cloudscraper, requests
 import re, calendar, os, base64
 from datetime import date
 import mongo
+from cloudscraper import CloudScraper
 from flask import request, jsonify
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv, find_dotenv
@@ -88,8 +89,7 @@ def get_available_birthday_image(url: str, width: int = 600):
   except:
     return None
 
-def get_available_birthday_image_web(url: str):
-  rq = cloudscraper.create_scraper()
+def get_available_birthday_image_web(url: str, rq: CloudScraper = cloudscraper.create_scraper()):
   try:
     x = rq.get("https://genshin-impact.fandom.com" + url, headers={"Cache-Control": "no-cache"}).text
     link = re.search(r"=\"(https:\/\/.*?_Birthday_.*?\.(png|jpg))", x).group(1)
@@ -98,6 +98,7 @@ def get_available_birthday_image_web(url: str):
     return None
 
 def update_db():
+  rq = cloudscraper.create_scraper()
   print("Updating database with any new Genshin characters...")
   characters_collection = db["characters"]
   
@@ -106,7 +107,7 @@ def update_db():
   
   for character in characters:
     exists = characters_collection.find_one({"character": character["character"]})
-    character['birthday-image'] = get_available_birthday_image_web(character['birthday_page'])
+    character['birthday-image'] = get_available_birthday_image_web(character['birthday_page'], rq)
     
     if exists and exists['birthday-image'] == None and character['birthday-image'] != None: 
       print(f"Updating {character['character']}")
@@ -114,6 +115,7 @@ def update_db():
     elif not exists:    
       print(f"Inserting {character['character']}")
       characters_collection.insert_one(character)
+    print(f"Character {character['character']} is up to date!")
 
 def send_webhooks():
   birthday = get_character_by_birthday()
